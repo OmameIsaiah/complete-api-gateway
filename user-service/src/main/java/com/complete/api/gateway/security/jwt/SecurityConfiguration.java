@@ -56,7 +56,6 @@ public class SecurityConfiguration {
             "/console/**",
             "/h2-console/**",
             "/api/v1/users/onboarding/**",
-            "/api/v1/auth/**",
             "/api/v1/users/entrance/**"
     };
 

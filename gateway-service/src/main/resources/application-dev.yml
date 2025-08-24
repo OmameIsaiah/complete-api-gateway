@@ -1,6 +1,5 @@
 server:
   port: 8081
-
 spring:
   application:
     name: api-gateway
@@ -66,11 +65,37 @@ spring:
         use-key-prefix: true
         cache-null-values: false
 
-
   data:
     redis:
       repositories:
         enabled: false
+      host: localhost
+      port: 6355
+      password: "5Df3A33ec1f33bE87"
+      timeout: 10000ms
+      lettuce:
+        pool:
+          max-active: 20       # Maximum connections
+          max-idle: 10         # Maximum idle connections
+          min-idle: 5          # Minimum idle connections
+          max-wait: 5000ms     # Max wait for a connection
+          time-between-eviction-runs: 60000ms # Eviction check interval
+        shutdown-timeout: 200ms
+        command-timeout: 10s
+      cache:
+        type: redis
+        redis:
+          time-to-live: 604800 # 1 week in seconds
+          key-prefix: "cache:"
+          use-key-prefix: true
+          cache-null-values: false
+  cache:
+    type: redis
+    redis:
+      time-to-live: 604800 # 1 week in seconds
+      key-prefix: "cache:"
+      use-key-prefix: true
+      cache-null-values: false
 
   security:
     oauth2:
@@ -91,7 +116,32 @@ jwt:
 logging:
   level:
     com.complete.api.gateway: DEBUG
+    io.jsonwebtoken: DEBUG
     org.springframework.cloud.gateway: INFO
-    #org.springframework.data.redis: WARN
-    org.springframework.data.redis: DEBUG
+    org.springframework.data.redis: DEBUG # WARN
     org.springframework.security: INFO
+
+
+allowed:
+  origins:
+    - "http://127.0.0.1:4200"
+    - "http://127.0.0.1:5500"
+    - "http://127.0.0.1:3000"
+    - "http://localhost:4200"
+    - "http://localhost:5500"
+    - "http://localhost:3000"
+  methods:
+    - "GET"
+    - "POST"
+    - "PUT"
+    - "DELETE"
+    - "PATCH"
+    - "OPTIONS"
+  headers:
+    - "Content-Type"
+    - "Authorization"
+    - "X-Requested-With"
+    - "X-CSRF-Token"
+    - "platform"
+    - "Cache-Control"
+    - "Access-Control-Allow-Origin"

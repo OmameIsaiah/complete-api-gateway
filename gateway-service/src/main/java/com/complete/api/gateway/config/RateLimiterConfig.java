@@ -19,12 +19,12 @@ import java.time.Duration;
 @Configuration
 public class RateLimiterConfig {
 
-    @Value("${spring.redis.host:localhost}")
+    @Value("${spring.data.redis.host}")
     private String redisHost;
 
-    @Value("${spring.redis.port:6355}")  // Default to your custom port
+    @Value("${spring.data.redis.port}")
     private int redisPort;
-    @Value("${spring.redis.password:5Df3A33ec1f33bE87}")
+    @Value("${spring.data.redis.password}")
     private String redisPassword;
 
     @Bean
