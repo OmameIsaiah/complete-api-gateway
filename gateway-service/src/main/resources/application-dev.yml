@@ -1,0 +1,97 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      routes:
+        - id: user-service
+          uri: http://localhost:8082
+          predicates:
+            - Path=/api/v1/users/**
+          filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 100
+                redis-rate-limiter.burstCapacity: 100
+                redis-rate-limiter.requestedTokens: 1
+            - name: Retry
+              args:
+                retries: 5
+                series: SERVER_ERROR
+                methods: GET,POST,PUT,DELETE
+                exceptions: java.io.IOException, org.springframework.cloud.gateway.support.NotFoundException
+                backoff:
+                  firstBackoff: 10ms
+                  maxBackoff: 1000ms
+                  factor: 2
+                  basedOnPreviousValue: false
+        - id: product-service
+          uri: http://localhost:8083
+          predicates:
+            - Path=/api/v1/products/**
+          filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 100
+                redis-rate-limiter.burstCapacity: 100
+                redis-rate-limiter.requestedTokens: 1
+            - name: Retry
+              args:
+                retries: 5
+                series: SERVER_ERROR
+                methods: GET,POST,PUT,DELETE
+
+  redis:
+    host: localhost
+    port: 6355
+    password: "5Df3A33ec1f33bE87"
+    timeout: 10000ms
+    lettuce:
+      pool:
+        max-active: 20       # Maximum connections
+        max-idle: 10         # Maximum idle connections
+        min-idle: 5          # Minimum idle connections
+        max-wait: 5000ms     # Max wait for a connection
+        time-between-eviction-runs: 60000ms # Eviction check interval
+      shutdown-timeout: 200ms
+      command-timeout: 10s
+    cache:
+      type: redis
+      redis:
+        time-to-live: 604800 # 1 week in seconds
+        key-prefix: "cache:"
+        use-key-prefix: true
+        cache-null-values: false
+
+
+  data:
+    redis:
+      repositories:
+        enabled: false
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          secret: "YFJFqggP14cyMKLZiGtDJUCnvggxQd7VahdoqUnkFNTxbFBEMxhsiwzoVacMO98z8PlFVb4sIFOqIGoF3uNIrvG98g7/piE/bOQxM8zaFYc8Dlqamwp0bGpjKepU16xNtd2vlUZ1Aki7F459ODvhK7rD6kCMOzRB+d6TwNIsNJrTpVBAQlR7cicLU5cJluJi+gavVhmoDw6W1lfUHkbUEBtqP6C+T/Ksn9NPQOTaujE9TOnNVgtgDHszw8GpoFk0WWwN1HewIq4ZcbE0i4053I8eEDLF50e9O5juySulUGBYHFK0HeQbDNZP8riIIWsEYt8o2NRf4TUMIrfZo3I0xA=="
+
+rate-limiter:
+  capacity: 10
+  refill-period: 30
+  refill-period-unit: SECONDS
+  tokens-per-refill: 10
+
+jwt:
+  secret: "YFJFqggP14cyMKLZiGtDJUCnvggxQd7VahdoqUnkFNTxbFBEMxhsiwzoVacMO98z8PlFVb4sIFOqIGoF3uNIrvG98g7/piE/bOQxM8zaFYc8Dlqamwp0bGpjKepU16xNtd2vlUZ1Aki7F459ODvhK7rD6kCMOzRB+d6TwNIsNJrTpVBAQlR7cicLU5cJluJi+gavVhmoDw6W1lfUHkbUEBtqP6C+T/Ksn9NPQOTaujE9TOnNVgtgDHszw8GpoFk0WWwN1HewIq4ZcbE0i4053I8eEDLF50e9O5juySulUGBYHFK0HeQbDNZP8riIIWsEYt8o2NRf4TUMIrfZo3I0xA=="
+  expiration: 86400000
+
+logging:
+  level:
+    com.complete.api.gateway: DEBUG
+    org.springframework.cloud.gateway: INFO
+    #org.springframework.data.redis: WARN
+    org.springframework.data.redis: DEBUG
+    org.springframework.security: INFO
