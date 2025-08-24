@@ -31,6 +31,12 @@ public class ApiResponseDto<T> implements Serializable {
         this.data = data;
     }
 
+    public ApiResponseDto(Boolean success, Integer code, String message) {
+        this.success = success;
+        this.code = code;
+        this.message = message;
+    }
+
     public ApiResponseDto(Boolean success, Integer code, HttpStatus status, T data) {
         this.success = success;
         this.code = code;

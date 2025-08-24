@@ -1,5 +1,6 @@
 package com.complete.api.gateway.filter;
 
+import com.complete.api.gateway.exceptions.TooManyRequestException;
 import com.complete.api.gateway.resolver.RateLimiterKeyResolver;
 import com.complete.api.gateway.service.TokenBucketRateLimiter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,6 +32,8 @@ public class RateLimiterFilter extends AbstractGatewayFilterFactory<RateLimiterF
                     if (allowed) {
                         return chain.filter(exchange);
                     } else {
+                        System.out.println("######## THIS REQUEST IS BLOCKED...");
+                        //throw new TooManyRequestException("Oops! Rate limit exceeded, please try again in 30 seconds.");
                         return keyResolver.resolve(exchange)
                                 .flatMap(key -> rateLimiter.getResetTime(key)
                                         .flatMap(resetTime -> {

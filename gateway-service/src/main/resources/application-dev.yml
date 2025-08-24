@@ -107,7 +107,7 @@ rate-limiter:
   capacity: 10
   refill-period: 30
   refill-period-unit: SECONDS
-  tokens-per-refill: 10
+  tokens-per-refill: 1
 
 jwt:
   secret: "YFJFqggP14cyMKLZiGtDJUCnvggxQd7VahdoqUnkFNTxbFBEMxhsiwzoVacMO98z8PlFVb4sIFOqIGoF3uNIrvG98g7/piE/bOQxM8zaFYc8Dlqamwp0bGpjKepU16xNtd2vlUZ1Aki7F459ODvhK7rD6kCMOzRB+d6TwNIsNJrTpVBAQlR7cicLU5cJluJi+gavVhmoDw6W1lfUHkbUEBtqP6C+T/Ksn9NPQOTaujE9TOnNVgtgDHszw8GpoFk0WWwN1HewIq4ZcbE0i4053I8eEDLF50e9O5juySulUGBYHFK0HeQbDNZP8riIIWsEYt8o2NRf4TUMIrfZo3I0xA=="
