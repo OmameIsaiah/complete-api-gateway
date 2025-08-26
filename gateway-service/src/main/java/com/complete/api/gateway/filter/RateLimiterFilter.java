@@ -2,6 +2,7 @@ package com.complete.api.gateway.filter;
 
 import com.complete.api.gateway.resolver.RateLimiterKeyResolver;
 import com.complete.api.gateway.service.TokenBucketRateLimiter;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
@@ -14,11 +15,9 @@ import reactor.core.publisher.Mono;
 
 import java.nio.charset.StandardCharsets;
 
-//@Component
-public class RateLimiterFilter {
-    /*
-    extends AbstractGatewayFilterFactory<RateLimiterFilter.Config>
-} {
+@Component
+@Slf4j
+public class RateLimiterFilter extends AbstractGatewayFilterFactory<RateLimiterFilter.Config> {
     @Autowired
     private TokenBucketRateLimiter rateLimiter;
     @Autowired
@@ -26,35 +25,27 @@ public class RateLimiterFilter {
     @Value("${rate-limiter.deny-body}")
     private String denyBody;
 
-*//*    public RateLimiterFilter(TokenBucketRateLimiter rateLimiter,
-                             RateLimiterKeyResolver keyResolver,
-                             @Value("${rate-limiter.deny-body}") String denyBody) {
-        super(Config.class);
-        this.rateLimiter = rateLimiter;
-        this.keyResolver = keyResolver;
-        this.denyBody = denyBody;
-    }*//*
-
     @Override
     public GatewayFilter apply(Config config) {
-        System.out.println("### LOG HERE ...");
-        return (exchange, chain) -> keyResolver.resolve(exchange)
+        return (exchange, chain) -> chain.filter(exchange);
+
+        //The token validation and check for number of request is handled by RateLimitingGlobalFilter class
+        /*return (exchange, chain) -> keyResolver.resolve(exchange)
                 .flatMap(key -> {
-                    System.out.println("### TOKEN KEY: " + key);
                     return rateLimiter.allowRequest(key);
                 })
                 .flatMap(allowed -> {
                     if (allowed) {
                         return chain.filter(exchange);
                     } else {
-                        System.out.println("######## THIS REQUEST IS BLOCKED...");
+                        //log.info("### THIS REQUEST IS BLOCKED...");
                         //throw new TooManyRequestException("Oops! Rate limit exceeded, please try again in 30 seconds.");
                         return processTooManyRequestResponse(exchange);
                     }
-                });
+                });*/
     }
 
-    private Mono<Void> processTooManyRequestResponse(ServerWebExchange exchange) {
+/*    private Mono<Void> processTooManyRequestResponse(ServerWebExchange exchange) {
         return keyResolver.resolve(exchange)
                 .flatMap(key -> rateLimiter.getResetTime(key)
                         .flatMap(resetTime -> {
@@ -62,20 +53,13 @@ public class RateLimiterFilter {
                             response.setStatusCode(HttpStatus.TOO_MANY_REQUESTS);
                             response.getHeaders().add("X-RateLimit-Retry-After", String.valueOf(resetTime));
                             response.getHeaders().add("X-RateLimit-Limit", "100");
-
-                            *//*String errorMessage = String.format(
-                                    "Rate limit exceeded. Please try again in %d seconds.",
-                                    resetTime
-                            );
-                            byte[] bytes = errorMessage.getBytes();
-                            *//*
                             byte[] bytes = denyBody.getBytes(StandardCharsets.UTF_8);
                             response.getHeaders().setContentLength(bytes.length);
                             return response.writeWith(Mono.just(response.bufferFactory().wrap(bytes)));
                         }));
-    }
+    }*/
 
     public static class Config {
         // Configuration properties if needed
-    }*/
+    }
 }

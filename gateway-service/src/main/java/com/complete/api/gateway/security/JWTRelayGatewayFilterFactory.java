@@ -9,8 +9,12 @@ import org.springframework.web.server.ServerWebExchange;
 
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 
-@Component
-public class JWTRelayGatewayFilterFactory extends AbstractGatewayFilterFactory<Object> {
+//@Component
+public class JWTRelayGatewayFilterFactory {
+
+    /*
+    extends AbstractGatewayFilterFactory<Object>
+} {
     private static final String BEARER = "Bearer ";
     private ReactiveJwtDecoder jwtDecoder;
 
@@ -40,5 +44,5 @@ public class JWTRelayGatewayFilterFactory extends AbstractGatewayFilterFactory<O
 
     private ServerWebExchange withBearerAuth(ServerWebExchange exchange, String authorizeToken) {
         return exchange.mutate().request(r -> r.headers(headers -> headers.setBearerAuth(authorizeToken))).build();
-    }
+    }*/
 }

@@ -13,8 +13,8 @@ spring:
           filters:
             - name: RequestRateLimiter
               args:
-                redis-rate-limiter.replenishRate: 10
-                redis-rate-limiter.burstCapacity: 10
+                redis-rate-limiter.replenishRate: 20
+                redis-rate-limiter.burstCapacity: 50
                 redis-rate-limiter.requestedTokens: 1
             - name: Retry
               args:
@@ -34,36 +34,14 @@ spring:
           filters:
             - name: RequestRateLimiter
               args:
-                redis-rate-limiter.replenishRate: 10
-                redis-rate-limiter.burstCapacity: 10
+                redis-rate-limiter.replenishRate: 20
+                redis-rate-limiter.burstCapacity: 50
                 redis-rate-limiter.requestedTokens: 1
             - name: Retry
               args:
                 retries: 5
                 series: SERVER_ERROR
                 methods: GET,POST,PUT,DELETE
-
-  #  redis:
-  #    host: localhost
-  #    port: 6355
-  #    password: "5Df3A33ec1f33bE87"
-  #    timeout: 10000ms
-  #    lettuce:
-  #      pool:
-  #        max-active: 20       # Maximum connections
-  #        max-idle: 10         # Maximum idle connections
-  #        min-idle: 5          # Minimum idle connections
-  #        max-wait: 5000ms     # Max wait for a connection
-  #        time-between-eviction-runs: 60000ms # Eviction check interval
-  #      shutdown-timeout: 200ms
-  #      command-timeout: 10s
-  #    cache:
-  #      type: redis
-  #      redis:
-  #        time-to-live: 604800 # 1 week in seconds
-  #        key-prefix: "cache:"
-  #        use-key-prefix: true
-  #        cache-null-values: false
 
   data:
     redis:
@@ -104,12 +82,12 @@ spring:
           secret: "YFJFqggP14cyMKLZiGtDJUCnvggxQd7VahdoqUnkFNTxbFBEMxhsiwzoVacMO98z8PlFVb4sIFOqIGoF3uNIrvG98g7/piE/bOQxM8zaFYc8Dlqamwp0bGpjKepU16xNtd2vlUZ1Aki7F459ODvhK7rD6kCMOzRB+d6TwNIsNJrTpVBAQlR7cicLU5cJluJi+gavVhmoDw6W1lfUHkbUEBtqP6C+T/Ksn9NPQOTaujE9TOnNVgtgDHszw8GpoFk0WWwN1HewIq4ZcbE0i4053I8eEDLF50e9O5juySulUGBYHFK0HeQbDNZP8riIIWsEYt8o2NRf4TUMIrfZo3I0xA=="
 
 rate-limiter:
-  capacity: 10                # 100 bucket size
-  refill-period: 30
+  capacity: 50               # 100 bucket size
+  refill-period: 30 # interval for refill
   refill-period-unit: SECONDS
-  tokens-per-refill: 5
+  tokens-per-refill: 1
 
-  refill-tokens: 5  # 100 how many tokens added each interval
+  refill-tokens: 20  # 100 how many tokens added each interval
   refill-interval-seconds: 30  # interval for refill
   key-prefix: "tbucket"        # redis key prefix
   respect-x-forwarded-for: true
@@ -158,5 +136,12 @@ allowed:
     - "Cache-Control"
     - "Access-Control-Allow-Origin"
 
+# TESTING THE RATE LIMIT WITH Apache Benchmark
 # ab -n 200 -c 10 http://localhost:8081/api/v1/products/all
+
+# ab -n 200 -c 10 -H "Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJ1c2VyLXR5cGUiOiJBZG1pbiIsInN1YiI6Im9tYW1lYXp5QGdtYWlsLmNvbSIsInVzZXItaWQiOiI0OGUyYWE4MS0zNzVhLTQ0N2UtYjRlMy01YzEwMjFkODI2NDciLCJyb2xlcyI6IlJPTEVfQ0FOX0RFTEVURV9ST0xFLFJPTEVfQ0FOX1ZJRVdfVVNFUlMsUk9MRV9DQU5fVVBEQVRFX1JPTEUsUk9MRV9DQU5fQUREX1JPTEUsUk9MRV9DQU5fREVMRVRFX1VTRVJTIiwibmFtZSI6IklzYWlhaCIsImV4cCI6MTc1NjE0MzI3NiwiaWF0IjoxNzU2MDU2ODc2LCJlbWFpbCI6Im9tYW1lYXp5QGdtYWlsLmNvbSIsImlzc3VlciI6IklzYWlhaCBPbWFtZSJ9.rUse-Uxm7IO43ZI8vDnPJALFXqSJgw0sn7d1eurNje8Uhz1HYgjZcgzCdXtYT4SEgttF8Euu0UN_8AS8xkcPsQ" http://localhost:8081/api/v1/users/management/find-all
+
+# ab -n 200 -c 10 -H "Authorization: Bearer <your-token>" -H "Content-Type: application/json" http://localhost:8081/api/v1/products/all
+
+
 # for /l %i in (1,1,120) do curl -s -o nul -w "%{http_code}\n" http://localhost:8081/api/v1/products/all

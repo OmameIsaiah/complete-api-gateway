@@ -43,10 +43,6 @@ public class RateLimitingGlobalFilter implements GlobalFilter, Ordered {
 
         String ipAddress = Utils.getClientIp(exchange);
         String authHeader = exchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
-        //Optional<String> userIdOpt = jwtUtil.extractUserIdV2(authHeader);
-        //String userId = userIdOpt.orElse("anonymous");
-        //String compositeKey = ipAddress + ":" + userId;
-        //log.info("##### COMPOSITE KEY: {}", compositeKey);
 
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             log.info("##### AUTHORIZATION PRESENT");

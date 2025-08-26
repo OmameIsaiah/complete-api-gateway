@@ -32,38 +32,6 @@ public class TokenBucketRateLimiter {
     @Value("${rate-limiter.tokens-per-refill}")
     private int tokensPerRefill;
 
-    /*public Mono<Boolean> allowRequest(String key) {
-        String tokensKey = "rate_limiter:tokens:" + key;
-        String timestampKey = "rate_limiter:timestamp:" + key;
-
-        return redisTemplate.opsForValue().get(tokensKey)
-                .defaultIfEmpty("")
-                .flatMap(currentTokensStr ->
-                        redisTemplate.opsForValue().get(timestampKey)
-                                .defaultIfEmpty("")
-                                .flatMap(lastRefillStr -> {
-                                    long currentTokens = currentTokensStr.isEmpty() ? capacity : Long.parseLong(currentTokensStr);
-                                    long lastRefillTimestamp = lastRefillStr.isEmpty() ? Instant.now().getEpochSecond() : Long.parseLong(lastRefillStr);
-                                    long now = Instant.now().getEpochSecond();
-
-                                    long timePassed = now - lastRefillTimestamp;
-                                    long refillAmount = (timePassed * tokensPerRefill) / getRefillPeriodInSeconds();
-                                    long newTokens = Math.min(capacity, currentTokens + refillAmount);
-
-                                    if (newTokens >= 1) {
-                                        newTokens--;
-                                        long expirationTime = getRefillPeriodInSeconds() * 2;
-
-                                        return redisTemplate.opsForValue().set(tokensKey, String.valueOf(newTokens), java.time.Duration.ofSeconds(expirationTime))
-                                                .then(redisTemplate.opsForValue().set(timestampKey, String.valueOf(now), java.time.Duration.ofSeconds(expirationTime)))
-                                                .then(Mono.just(true));
-                                    } else {
-                                        return Mono.just(false);
-                                    }
-                                })
-                );
-    }*/
-
     public Mono<Boolean> allowRequest(String key) {
         String tokensKey = "rate_limiter:tokens:" + key;
         String timestampKey = "rate_limiter:timestamp:" + key;
