@@ -1,7 +1,10 @@
 package com.complete.api.gateway.security;
 
+import com.complete.api.gateway.exceptions.BadRequestException;
+import com.complete.api.gateway.utils.Utils;
 import com.nimbusds.jose.util.Base64;
 import io.jsonwebtoken.*;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
 import org.springframework.stereotype.Component;
@@ -13,8 +16,8 @@ import java.util.Date;
 import java.util.Optional;
 
 @Component
+@Slf4j
 public class JwtUtil {
-
     @Value("${jwt.secret}")
     private String secret;
     public static final MacAlgorithm JWT_ALGORITHM = MacAlgorithm.HS512;
@@ -43,15 +46,15 @@ public class JwtUtil {
                         .parseClaimsJws(token)
                         .getBody();*/
             } catch (ExpiredJwtException e) {
-                throw new RuntimeException("JWT token expired", e);
+                throw new BadRequestException("JWT token expired{} " + e.getMessage());
             } catch (MalformedJwtException e) {
-                throw new RuntimeException("Invalid JWT token format", e);
+                throw new BadRequestException("Invalid JWT token format{} " + e.getMessage());
             } catch (SignatureException e) {
-                throw new RuntimeException("JWT signature validation failed", e);
+                throw new BadRequestException("JWT signature validation failed{} " + e.getMessage());
             } catch (IllegalArgumentException e) {
-                throw new RuntimeException("JWT token is empty or null", e);
+                throw new BadRequestException("JWT token is empty or null{} " + e.getMessage());
             } catch (JwtException e) {
-                throw new RuntimeException("Invalid JWT token", e);
+                throw new BadRequestException("Invalid JWT token{} " + e.getMessage());
             }
         });
     }
@@ -60,7 +63,7 @@ public class JwtUtil {
         return extractAllClaims(token)
                 .map(claims -> {
                     // Try to get user ID from different possible claims
-                    Object userId = claims.get("user-id");
+                    Object userId = claims.get(Utils.TOKEN_USER_ID);
                     if (userId != null) {
                         return userId.toString();
                     }
@@ -70,16 +73,16 @@ public class JwtUtil {
                 })
                 .onErrorResume(e -> {
                     // Log the error for debugging
-                    System.err.println("Error extracting user ID: " + e.getMessage());
+                    log.info("### Error extracting user ID: {}", e.getMessage());
                     return Mono.error(e);
                 });
     }
 
     public Optional<String> extractUserIdV2(String bearerToken) {
-        if (bearerToken == null || !bearerToken.startsWith("Bearer ")) {
+        if (bearerToken == null || !bearerToken.startsWith(Utils.TOKEN_PREFIX)) {
             return Optional.empty();
         }
-        String token = bearerToken.substring("Bearer ".length()).trim();
+        String token = bearerToken.substring(Utils.TOKEN_PREFIX.length()).trim();
         try {
             Claims claims = Jwts.parser()
                     .setSigningKey(secret)
@@ -93,7 +96,7 @@ public class JwtUtil {
                     .getBody();*/
 
             // Adjust the claim that represents your "user id" — often "sub" or "userId"
-            String userId = claims.get("user-id", String.class);
+            String userId = claims.get(Utils.TOKEN_USER_ID, String.class);
             if (userId == null) userId = claims.getSubject();
             return Optional.ofNullable(userId);
         } catch (Exception e) {
@@ -117,19 +120,19 @@ public class JwtUtil {
                         .parseClaimsJws(token);*/
                 return true;
             } catch (ExpiredJwtException e) {
-                System.err.println("JWT token expired: " + e.getMessage());
+                log.info("JWT token expired: {} ", e.getMessage());
                 return false;
             } catch (MalformedJwtException e) {
-                System.err.println("Invalid JWT token format: " + e.getMessage());
+                log.info("Invalid JWT token format: {} ", e.getMessage());
                 return false;
             } catch (SignatureException e) {
-                System.err.println("JWT signature validation failed: " + e.getMessage());
+                log.info("JWT signature validation failed: {} ", e.getMessage());
                 return false;
             } catch (IllegalArgumentException e) {
-                System.err.println("JWT token is empty or null: " + e.getMessage());
+                log.info("JWT token is empty or null: {} ", e.getMessage());
                 return false;
             } catch (JwtException e) {
-                System.err.println("Invalid JWT token: " + e.getMessage());
+                log.info("Invalid JWT token: {} ", e.getMessage());
                 return false;
             }
         });
@@ -140,7 +143,7 @@ public class JwtUtil {
                 .map(claims -> claims.getExpiration().before(new Date()))
                 .onErrorResume(e -> {
                     // If we can't extract claims, assume token is invalid/expired
-                    System.err.println("Error checking token expiration: " + e.getMessage());
+                    log.info("Error checking token expiration: {} ", e.getMessage());
                     return Mono.just(true);
                 });
     }
@@ -150,7 +153,7 @@ public class JwtUtil {
         return extractAllClaims(token)
                 .map(claims -> claims.get(claimName))
                 .onErrorResume(e -> {
-                    System.err.println("Error extracting claim " + claimName + ": " + e.getMessage());
+                    log.info("Error extracting claim " + claimName + ": {} ", e.getMessage());
                     return Mono.empty();
                 });
     }

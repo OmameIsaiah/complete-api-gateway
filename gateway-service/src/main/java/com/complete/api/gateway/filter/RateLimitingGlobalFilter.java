@@ -40,18 +40,17 @@ public class RateLimitingGlobalFilter implements GlobalFilter, Ordered {
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, org.springframework.cloud.gateway.filter.GatewayFilterChain chain) {
-
         String ipAddress = Utils.getClientIp(exchange);
         String authHeader = exchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
 
-        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+        if (authHeader != null && authHeader.startsWith(Utils.TOKEN_PREFIX)) {
             log.info("##### AUTHORIZATION PRESENT");
             String token = authHeader.substring(7);
             return jwtUtil.validateToken(token)
                     .flatMap(valid -> {
                         if (Boolean.TRUE.equals(valid)) {
                             Optional<String> userIdOpt = jwtUtil.extractUserIdV2(authHeader);
-                            String userId = userIdOpt.orElse("anonymous");
+                            String userId = userIdOpt.orElse(Utils.ANONYMOUS_USER_ID);
                             return processNumberOfRequestWithRedisAndBlockTooManyRequests((ipAddress + ":" + userId), chain, exchange);
                         } else {
                             log.info("### INVALID JWT TOKEN");
@@ -60,11 +59,11 @@ public class RateLimitingGlobalFilter implements GlobalFilter, Ordered {
                     })
                     .onErrorResume(e -> {
                         log.info("### ERROR VALIDATING TOKEN, FALLING BACK TO IP: {}", e.getMessage());
-                        return processNumberOfRequestWithRedisAndBlockTooManyRequests((ipAddress + ":" + "token_validation_error"), chain, exchange);
+                        return processNumberOfRequestWithRedisAndBlockTooManyRequests((ipAddress + ":" + Utils.VALIDATION_ERROR_USER_ID), chain, exchange);
                     });
         } else {
             log.info("##### NO AUTHORIZATION PRESENT");
-            return processNumberOfRequestWithRedisAndBlockTooManyRequests((ipAddress + ":" + "anonymous"), chain, exchange);
+            return processNumberOfRequestWithRedisAndBlockTooManyRequests((ipAddress + ":" + Utils.ANONYMOUS_USER_ID), chain, exchange);
         }
     }
 
@@ -72,10 +71,10 @@ public class RateLimitingGlobalFilter implements GlobalFilter, Ordered {
         return tokenBucketService.tryConsume(compositeKey)
                 .flatMap(allowed -> {
                     if (allowed) {
-                        log.info("##### ALLOWED: {}", allowed);
+                        log.info("##### ALLOWED: {}", true);
                         return chain.filter(exchange);
                     } else {
-                        log.info("##### ALLOWED: {}", allowed);
+                        log.info("##### ALLOWED: {}", false);
                         return respondTooManyRequests(exchange);
                     }
                 });

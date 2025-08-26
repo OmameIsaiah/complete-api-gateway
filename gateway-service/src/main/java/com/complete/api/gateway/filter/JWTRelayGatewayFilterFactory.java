@@ -1,4 +1,4 @@
-package com.complete.api.gateway.security;
+package com.complete.api.gateway.filter;
 
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;

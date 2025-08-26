@@ -18,10 +18,8 @@ import java.time.Duration;
 
 @Configuration
 public class RateLimiterConfig {
-
     @Value("${spring.data.redis.host}")
     private String redisHost;
-
     @Value("${spring.data.redis.port}")
     private int redisPort;
     @Value("${spring.data.redis.password}")

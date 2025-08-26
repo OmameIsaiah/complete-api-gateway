@@ -1,11 +1,18 @@
 package com.complete.api.gateway.utils;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.web.server.ServerWebExchange;
 
 import java.net.InetSocketAddress;
 
+@Slf4j
 public class Utils {
+    public static final String TOKEN_USER_ID = "user-id";
+    public static final String TOKEN_PREFIX = "Bearer ";
+    public static final String ANONYMOUS_USER_ID = "anonymous";
+    public static final String VALIDATION_ERROR_USER_ID = "token_validation_error";
+
     public static String getClientIp(ServerWebExchange exchange) {
         try {
             InetSocketAddress remoteAddress = exchange.getRequest().getRemoteAddress();
@@ -18,10 +25,11 @@ public class Utils {
                 return ipAddress;
             }
         } catch (Exception e) {
-            System.err.println("Error getting client IP: " + e.getMessage());
+            log.info("### Error getting client IP: {}", e.getMessage());
         }
         return "unknown";
     }
+
     public static String getClientIp(ServerHttpRequest request) {
         String ipAddress = "unknown";
         try {
@@ -35,7 +43,7 @@ public class Utils {
                 }
             }
         } catch (Exception e) {
-            System.err.println("Error getting client IP: " + e.getMessage());
+            log.info("### Error getting client IP: {}", e.getMessage());
         }
         return ipAddress;
     }

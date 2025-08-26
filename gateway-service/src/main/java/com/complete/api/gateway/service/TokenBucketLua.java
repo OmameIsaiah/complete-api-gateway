@@ -5,7 +5,6 @@ import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.scripting.support.ResourceScriptSource;
 
 public class TokenBucketLua {
-
     public static DefaultRedisScript<Long> getScript() {
         DefaultRedisScript<Long> script = new DefaultRedisScript<>();
         script.setResultType(Long.class);

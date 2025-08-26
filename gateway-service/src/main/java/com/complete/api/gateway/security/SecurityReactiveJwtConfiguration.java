@@ -21,7 +21,6 @@ public class SecurityReactiveJwtConfiguration {
     private String jwtKey;
 
     @Bean
-    //public ReactiveJwtDecoder jwtDecoder(SecurityMetersService metersService) {
     public ReactiveJwtDecoder jwtDecoder() {
         NimbusReactiveJwtDecoder jwtDecoder = NimbusReactiveJwtDecoder.withSecretKey(getSecretKey()).macAlgorithm(JwtUtil.JWT_ALGORITHM).build();
         return token -> {

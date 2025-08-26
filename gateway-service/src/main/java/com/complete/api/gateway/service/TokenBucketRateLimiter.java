@@ -1,6 +1,7 @@
 package com.complete.api.gateway.service;
 
 import com.complete.api.gateway.exceptions.TooManyRequestException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -11,32 +12,28 @@ import reactor.core.publisher.Mono;
 import java.time.Instant;
 
 @Service
+@Slf4j
 public class TokenBucketRateLimiter {
     @Autowired
     @Qualifier("reactiveRedisTemplate")
     private ReactiveRedisTemplate<String, String> redisTemplate;
 
-    //@Value("${rate-limiter.capacity:100}")
-    @Value("${rate-limiter.capacity}")
+    @Value("${rate-limiter.capacity:50}")
     private int capacity;
 
-    //@Value("${rate-limiter.refill-period:30}")
-    @Value("${rate-limiter.refill-period}")
+    @Value("${rate-limiter.refill-period:30}")
     private int refillPeriod;
 
-    //@Value("${rate-limiter.refill-period-unit:SECONDS}")
-    @Value("${rate-limiter.refill-period-unit}")
+    @Value("${rate-limiter.refill-period-unit:SECONDS}")
     private String refillPeriodUnit;
 
-    //@Value("${rate-limiter.tokens-per-refill:100}")
-    @Value("${rate-limiter.tokens-per-refill}")
+    @Value("${rate-limiter.tokens-per-refill:50}")
     private int tokensPerRefill;
 
     public Mono<Boolean> allowRequest(String key) {
         String tokensKey = "rate_limiter:tokens:" + key;
         String timestampKey = "rate_limiter:timestamp:" + key;
-        System.out.println("### TOKEN KEY: " + tokensKey);
-
+        log.info("### TOKEN KEY: {}", tokensKey);
         return redisTemplate.opsForValue().get(tokensKey)
                 .defaultIfEmpty("")
                 .flatMap(currentTokensStr ->
@@ -54,7 +51,7 @@ public class TokenBucketRateLimiter {
                                     long refillAmount = (timePassed * tokensPerRefill) / getRefillPeriodInSeconds();
                                     long newTokens = Math.min(capacity, currentTokens + refillAmount);
 
-                                    System.out.println("Key: " + key + ", Current: " + currentTokens +
+                                    log.info("### Key: " + key + ", Current: " + currentTokens +
                                             ", Refill: " + refillAmount + ", New: " + newTokens);
 
                                     if (newTokens >= 1) {
@@ -67,9 +64,8 @@ public class TokenBucketRateLimiter {
                                                         java.time.Duration.ofSeconds(expirationTime)))
                                                 .then(Mono.just(true));
                                     } else {
-                                        System.out.println("Rate limit exceeded for key: " + key);
+                                        log.info("### Rate limit exceeded for key: " + key);
                                         throw new TooManyRequestException("Oops! Rate limit exceeded, please try again in 30 seconds.");
-                                        //return Mono.just(false);
                                     }
                                 })
                 );

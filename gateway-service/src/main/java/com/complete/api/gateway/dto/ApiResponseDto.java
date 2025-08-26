@@ -59,7 +59,6 @@ public class ApiResponseDto<T> implements Serializable {
         this.data = data;
     }
 
-
     public ApiResponseDto() {
     }
 

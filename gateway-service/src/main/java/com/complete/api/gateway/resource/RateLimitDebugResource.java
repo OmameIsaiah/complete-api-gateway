@@ -2,14 +2,12 @@ package com.complete.api.gateway.resource;
 
 import com.complete.api.gateway.security.JwtUtil;
 import com.complete.api.gateway.service.TokenBucketRateLimiter;
+import com.complete.api.gateway.utils.Utils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-
-import java.net.InetSocketAddress;
 
 @RestController
 @RequestMapping("/api/v1/debug-rate-limit")
@@ -20,44 +18,11 @@ public class RateLimitDebugResource {
     @Autowired
     private JwtUtil jwtUtil;
 
-    private String getClientIp(ServerHttpRequest request) {
-        try {
-            InetSocketAddress remoteAddress = request.getRemoteAddress();
-            if (remoteAddress != null && remoteAddress.getAddress() != null) {
-                String ipAddress = remoteAddress.getAddress().getHostAddress();
-                // Handle IPv6 localhost
-                if ("0:0:0:0:0:0:0:1".equals(ipAddress) || "::1".equals(ipAddress)) {
-                    return "127.0.0.1";
-                }
-                return ipAddress;
-            }
-        } catch (Exception e) {
-            System.err.println("Error getting client IP: " + e.getMessage());
-        }
-        return "unknown";
-    }
-
-    private String getClientIp(ServerWebExchange exchange) {
-        try {
-            InetSocketAddress remoteAddress = exchange.getRequest().getRemoteAddress();
-            if (remoteAddress != null && remoteAddress.getAddress() != null) {
-                String ipAddress = remoteAddress.getAddress().getHostAddress();
-                // Handle IPv6 localhost
-                if ("0:0:0:0:0:0:0:1".equals(ipAddress) || "::1".equals(ipAddress)) {
-                    return "127.0.0.1";
-                }
-                return ipAddress;
-            }
-        } catch (Exception e) {
-            System.err.println("Error getting client IP: " + e.getMessage());
-        }
-        return "unknown";
-    }
 
     @GetMapping("/get-limit-status")
     public Mono<String> getRateLimitStatus(@RequestHeader(value = "Authorization", required = false) String authHeader,
                                            ServerWebExchange exchange) {
-        String ipAddress = getClientIp(exchange);
+        String ipAddress = Utils.getClientIp(exchange);
 
         Mono<String> userIdMono;
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
@@ -98,7 +63,7 @@ public class RateLimitDebugResource {
     @GetMapping("/test-rate-limit")
     public Mono<String> testRateLimit(@RequestHeader(value = "Authorization", required = false) String authHeader,
                                       ServerWebExchange exchange) {
-        String ipAddress = getClientIp(exchange);
+        String ipAddress = Utils.getClientIp(exchange);
 
         Mono<String> userIdMono;
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
@@ -130,7 +95,7 @@ public class RateLimitDebugResource {
     public Mono<String> simulateRequests(@RequestHeader(value = "Authorization", required = false) String authHeader,
                                          @RequestParam(defaultValue = "10") int count,
                                          ServerWebExchange exchange) {
-        String ipAddress = getClientIp(exchange);
+        String ipAddress = Utils.getClientIp(exchange);
         Mono<String> userIdMono;
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             String token = authHeader.substring(7);
