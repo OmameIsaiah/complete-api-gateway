@@ -10,6 +10,7 @@ import reactor.core.publisher.Mono;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 import java.util.Date;
+import java.util.Optional;
 
 @Component
 public class JwtUtil {
@@ -72,6 +73,33 @@ public class JwtUtil {
                     System.err.println("Error extracting user ID: " + e.getMessage());
                     return Mono.error(e);
                 });
+    }
+
+    public Optional<String> extractUserIdV2(String bearerToken) {
+        if (bearerToken == null || !bearerToken.startsWith("Bearer ")) {
+            return Optional.empty();
+        }
+        String token = bearerToken.substring("Bearer ".length()).trim();
+        try {
+            Claims claims = Jwts.parser()
+                    .setSigningKey(secret)
+                    .parseClaimsJws(token)
+                    .getBody();
+
+            /*Claims claims = Jwts.parserBuilder()
+                    .setSigningKey(secret)
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();*/
+
+            // Adjust the claim that represents your "user id" — often "sub" or "userId"
+            String userId = claims.get("user-id", String.class);
+            if (userId == null) userId = claims.getSubject();
+            return Optional.ofNullable(userId);
+        } catch (Exception e) {
+            // Invalid token or key mismatch
+            return Optional.empty();
+        }
     }
 
     public Mono<Boolean> validateToken(String token) {

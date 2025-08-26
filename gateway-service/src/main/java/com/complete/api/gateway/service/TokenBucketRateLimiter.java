@@ -67,6 +67,7 @@ public class TokenBucketRateLimiter {
     public Mono<Boolean> allowRequest(String key) {
         String tokensKey = "rate_limiter:tokens:" + key;
         String timestampKey = "rate_limiter:timestamp:" + key;
+        System.out.println("### TOKEN KEY: " + tokensKey);
 
         return redisTemplate.opsForValue().get(tokensKey)
                 .defaultIfEmpty("")

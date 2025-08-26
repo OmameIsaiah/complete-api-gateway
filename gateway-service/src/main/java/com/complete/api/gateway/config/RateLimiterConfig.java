@@ -1,6 +1,7 @@
 package com.complete.api.gateway.config;
 
-import com.complete.api.gateway.filter.RateLimiterFilter;
+//import com.complete.api.gateway.filter.RateLimiterFilter;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -51,8 +52,8 @@ public class RateLimiterConfig {
         );
     }
 
-    @Bean
+/*    @Bean
     public RateLimiterFilter rateLimiterFilter() {
         return new RateLimiterFilter();
-    }
+    }*/
 }
